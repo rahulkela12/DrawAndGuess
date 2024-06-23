@@ -2,17 +2,6 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -24,15 +13,90 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.home{
+ >h1{
+/*  filter: drop-shadow(0 -6mm 4mm rgb(0, 189, 210));*/
+  font-family: 'Dancing Script', cursive;
+	font-size: 80px;
+	margin-bottom: 30px;
+  font-weight: 400;
+  margin-top: 3rem;
+  text-align: center;
+  gap: 1rem;
+ } 
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.multicolortext {
+  background-image: linear-gradient(to left, rgb(237, 96, 237), rgb(96, 22, 149), rgb(42, 220, 42), rgba(188, 61, 208, 0.884), yellow, rgb(255, 136, 0), rgb(255, 68, 0));
+  background-clip: text !important;
+  color: transparent;
+}
+
+.panels{
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 350px;
+    width: 400px;
+    background-color: rgba(12, 44, 150, 0.75);
+    border-radius: 3px;
+    padding: 15px;
   }
-  to {
-    transform: rotate(360deg);
+.avatar{
+  height: 150px;
+}
+.container-name-lang{
+  display: flex;
+  flex-direction: row;
+  justify-content:space-between;
+}
+
+.input-name{
+  margin-right: 15px;
+  width: 65%;
+  border-radius: 5px;
+  height: 40px;
+}
+
+.select-lang{
+  width: 35%;
+  border-radius: 5px;
+}
+
+.btn1{
+  background-color: aqua;
+  border-radius: 7px;
+  height: 60px;
+}
+.btn2{
+  background-color:chartreuse;
+  border-radius: 7px;
+  height: 40px;
+}
+
+.loader {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  > div {
+    height:10rem;
+    width: 10rem;
+    border-radius: 50%;
+    border-top: 1rem solid rgb(43, 43, 43);
+    border-left: 1rem solid rgb(43, 43, 43);
+    border-right: 1rem solid #fff;
+    border-bottom: 1rem solid #fff;
+    animation: loading-animation 0.5s linear infinite;
   }
 }
