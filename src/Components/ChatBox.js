@@ -20,6 +20,7 @@ const ChatBox = ({ messages, onSendMessage }) => {
       </div>
       <form onSubmit={handleSendMessage} className="flex ">
         <input
+          placeholder='Type Your Guess Here...'
           type="text"
           className="flex-grow w-10  p-2 border border-gray-400"
           value={message}

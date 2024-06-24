@@ -5,7 +5,8 @@
 @import "tailwindcss/utilities";
 
 @layer utilities {
-  .loader > div {
+  .loader 
+  > div {
     @apply h-40 w-40 rounded-full border-t-4 border-l-4 border-r-white border-b-white animate-spin;
   }
 }
