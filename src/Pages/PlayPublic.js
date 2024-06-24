@@ -1,42 +1,62 @@
 import React, { useEffect } from "react";
-import { useState } from "react";
+import { useState,useCallback,useRef } from "react";
 import { useLocation } from "react-router-dom";
 import TopBar from "../Components/TopBar";
 import Leaderboard from "../Components/Leaderboard";
 import ChatBox from "../Components/ChatBox";
 import DrawingBoard from "../Components/DrawingBoard";
+import { io } from "socket.io-client";
+
+const socket = io('http://localhost:5000')
 
 const PlayPublic = () => {
-  const [players, setPlayers] = useState([
-    { name: "JesusIsTheWay", points: 300 },
-    { name: "Cinnamoroll", points: 365 },
-    { name: "littlekid7778", points: 0 },
-    { name: "obama", points: 0 },
-    { name: "jio", points: 0 },
-    { name: "bob", points: 0 },
-    { name: "myush", points: 0 },
-    { name: "hi", points: 0 },
-  ]);
+  const [players, setPlayers] = useState([]);
+  const [messages, setMessages] = useState([]);
   const { state } = useLocation();
-  console.log(state);
+  const hasJoined = useRef(false);
 
-  useEffect(()=>{
-    const player = {
-      name:`${state.name}(you)`,
-      points:0
+  useEffect(() => {
+    if (state && state.name && !hasJoined.current) {
+      console.log("Joining with name:", state.name);
+      socket.emit('join', { name: state.name });
+      hasJoined.current = true;
     }
-    setPlayers([...players,player]);
-  },[state]);
 
-  const [messages, setMessages] = useState([
-    "bob joined the room!",
-    "myush joined the room!",
-    "hi joined the room!",
-  ]);
+    const onPlayerList = (players) => {
+      console.log("Received player list:", players);
+      setPlayers(players);
+    };
 
-  const handleSendMessage = (message) => {
-    setMessages([...messages, message]);
-  };
+    const onMessage = (message) => {
+      console.log("Received message:", message);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    };
+
+    socket.on('playerList', onPlayerList);
+    socket.on('message', onMessage);
+
+    return () => {
+      socket.off('playerList', onPlayerList);
+      socket.off('message', onMessage);
+    };
+  }, [state]);
+
+
+  const handleSendMessage = useCallback((message) => {
+    // console.log("Sending message:", message);
+    socket.emit('message', message);
+  }, []);
+  
+
+  // useEffect(() => {
+  //   if (state && state.name) {
+  //     const newPlayer = { name: state.name, points: 0 };
+  //     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
+  //     setMessages((prevMessages) => [...prevMessages, `${state.name} joined the room!`]);
+  //   }
+  // }, [state]);
+
+  console.log(state);
 
   return (
     <>
