@@ -14,7 +14,7 @@ const ChatBox = ({ messages, onSendMessage }) => {
       <div className="flex-grow overflow-y-auto mb-4">
         {messages.map((msg, index) => (
           <div key={index} className="mb-2">
-            <span>{msg}</span>
+            <strong>{msg.sender}:</strong> {msg.text}
           </div>
         ))}
       </div>
