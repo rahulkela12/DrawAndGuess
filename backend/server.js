@@ -4,6 +4,7 @@ const http = require('http');
 const cors = require('cors');
 
 const server = http.createServer(app);
+app.use(cors());
 
 const { Server } = require("socket.io");
 
@@ -29,23 +30,28 @@ const getRoom = () => {
 
 io.on('connection', (socket) => {
     console.log('User connected with id:', socket.id);
-
+    let userRoom;
     socket.on('join', ({ name }) => {
         if (playerRooms[socket.id]) {
-            return;
-        }
-
-        const userRoom = getRoom();
+             userRoom = playerRooms[socket.id];
+            const index =  rooms[userRoom].findIndex(player => player.id === socket.id);
+            if(index !== -1){
+                const player = rooms[userRoom][index];
+                rooms[userRoom].splice(index, 1);
+                io.to(userRoom).emit('message', { sender: 'System', text: `${player.name} has changed name to ${name}!` });
+                rooms[userRoom].push({ id: socket.id, name, points: player.points});
+            }
+        }else{
+        userRoom = getRoom();
         socket.join(userRoom);
         playerRooms[socket.id] = userRoom;
-
+        io.to(userRoom).emit('message', { sender: 'System', text: `${name} joined the room!` });
         rooms[userRoom].push({ id: socket.id, name, points: 0 });
-
         console.log(`${name} joined room ${userRoom}`);
-        console.log(`Room ${userRoom} players:`, rooms[userRoom]);
+        }
+        console.log(`Room ${userRoom} has players:`, rooms[userRoom]);
 
         io.to(userRoom).emit('playerList', rooms[userRoom]);
-        io.to(userRoom).emit('message', { sender: 'System', text: `${name} joined the room!` });
 
         socket.on('message', (message) => {
             console.log(`Message from ${name} in room ${userRoom}:`, message);

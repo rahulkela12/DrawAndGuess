@@ -56,7 +56,7 @@ const PlayPublic = () => {
   //   }
   // }, [state]);
 
-  console.log(state);
+  // console.log(state);
 
   return (
     <>
