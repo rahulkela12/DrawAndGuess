@@ -21,7 +21,7 @@ const Home = () => {
       name,
       language: languages[lang],
     }
-    navigate("/playPrivate", { state });
+    navigate("/privateJoin", { state });
   };
 
   const playPublic = () => {
@@ -38,11 +38,10 @@ const Home = () => {
 
   return (
     <div className="home">
-      <section></section>
       <h1 class="bg-clip-text text-transparent bg-gradient-to-l from-yellow-500 via-red-400 to-green-500 text-8xl font-bold mb-8 mt-12 text-center animate-bounce">Draw and Guess</h1> 
        <main>
         <div className="flex items-center justify-center w-full">
-          <div className="panel flex flex-col justify-between h-auto w-96 bg-blue-600 bg-opacity-60 rounded-lg p-8 shadow-2xl ">
+          <div className="panel flex flex-wrap justify-between h-auto w-96 bg-blue-600 bg-opacity-60 rounded-lg p-8 shadow-2xl ">
             <div className="flex justify-between mb-4">
               <input
                 className="input-name mr-4 pl-2 w-2/3 rounded h-10 border border-gray-300 focus:outline-none focus:border-blue-500"
@@ -61,20 +60,20 @@ const Home = () => {
                 <option value={1}>English</option>
               </select>
             </div>
-            <div className="avatar h-40 mb-4">
+            <div className="avatar h-40 mb-4 w-full">
               {/* Add avatar or other image here */}
             </div>
             <input
-              className="btn1 bg-blue-500 text-white rounded h-10 mb-2 hover:bg-blue-700 cursor-pointer transition-all duration-300"
+              className="btn1 bg-blue-500 text-white rounded h-10 mb-2 w-full hover:bg-blue-700 cursor-pointer transition-all duration-300"
               type="button"
               name="Public"
               value="Play!"
               onClick={playPublic}
             />
             <input
-              className="btn2 bg-green-500 text-white rounded h-10 hover:bg-green-700 cursor-pointer transition-all duration-300"
+              className="btn2 bg-green-500 text-white rounded h-10 hover:bg-green-700 cursor-pointer transition-all duration-300 w-full"
               type="button"
-              value="Create Private Room"
+              value="Private Room"
               onClick={playPrivate}
             />
           </div>

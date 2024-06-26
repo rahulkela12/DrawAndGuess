@@ -12,7 +12,7 @@ const socket = io('http://localhost:5000')
 const PlayPublic = () => {
   const [players, setPlayers] = useState([]);
   const [messages, setMessages] = useState([]);
-  const { state } = useLocation();
+  const {state} = useLocation();
   const hasJoined = useRef(false);
 
   useEffect(() => {

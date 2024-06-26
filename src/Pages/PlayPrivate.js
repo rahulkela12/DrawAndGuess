@@ -9,8 +9,8 @@ const PlayPrivate = () => {
   const [players, setPlayers] = useState([
     { name: "You", points: 0 },
   ]);
-  const { state } = useLocation();
-  console.log(state.name);
+  const { state} = useLocation();
+  console.log(state);
 
   useEffect(()=>{
     const player = {

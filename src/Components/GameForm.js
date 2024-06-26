@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const GameForm = () => {
-  const [players, setPlayers] = useState(8);
+  const [players, setPlayers] = useState(2);
   const [language, setLanguage] = useState('English');
   const [drawTime, setDrawTime] = useState(80);
   const [rounds, setRounds] = useState(3);
@@ -30,6 +30,8 @@ const GameForm = () => {
         <label className=" text-white font-medium">Players</label>
         <input 
           type="number" 
+          max={8}
+          min={2}
           value={players} 
           onChange={(e) => setPlayers(e.target.value)} 
           className="border p-2 rounded w-80"
