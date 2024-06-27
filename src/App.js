@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { Suspense, lazy } from 'react';
 import Loader from './Components/Loader';
 import PrivateJoin from './Pages/PrivateJoin';
+import PrivatePlay from './Pages/PrivatePlay';
 
 const Home = lazy(()=>import("./Pages/Home"));
 const PlayPrivate = lazy(()=>import("./Pages/PlayPrivate"));
@@ -20,6 +21,7 @@ function App() {
         <Route path='/privateJoin' element={<PrivateJoin/>}/>
         <Route path='/playPrivate' element={<PlayPrivate/>}/>
         <Route path='/playPublic' element={<PlayPublic/>}/>
+        <Route path='/privatePlay' element={<PrivatePlay/>}/>
       </Routes>
       </Suspense>
       <Toaster position="bottom-center" />

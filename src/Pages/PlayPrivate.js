@@ -37,7 +37,7 @@ const PlayPrivate = () => {
                 <Leaderboard players={players} />
               </div>
          <div className="flex-1 mt-1  flex flex-col p-1">
-         <GameForm />
+         <GameForm name={state.name}/>
          </div>
          <div className="w-1/4 mt-1  flex-shrink-0 flex flex-col overflow-y-auto p-1">
                 <ChatBox

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 
+
 const PrivateJoin = () => {
     const [code,setCode] = useState("");
     let { state} = useLocation();
@@ -9,10 +10,10 @@ const PrivateJoin = () => {
     const createRoom = ()=>{
         navigate("/playPrivate", { state });
     }
-
     const joinRoom = ()=>{
         console.log("join Room");
-        navigate("/playPublic",{state});
+        navigate('/privatePlay',{state});
+        // navigate("/playPublic",{state});
     }
     return (
      <div className='flex justify-between flex-col'>

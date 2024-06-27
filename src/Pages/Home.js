@@ -38,7 +38,7 @@ const Home = () => {
 
   return (
     <div className="home">
-      <h1 class="bg-clip-text text-transparent bg-gradient-to-l from-yellow-500 via-red-400 to-green-500 text-8xl font-bold mb-8 mt-12 text-center animate-bounce">Draw and Guess</h1> 
+      <h1 className="bg-clip-text text-transparent bg-gradient-to-l from-yellow-500 via-red-400 to-green-500 text-8xl font-bold mb-8 mt-12 text-center animate-bounce">Draw and Guess</h1> 
        <main>
         <div className="flex items-center justify-center w-full">
           <div className="panel flex flex-wrap justify-between h-auto w-96 bg-blue-600 bg-opacity-60 rounded-lg p-8 shadow-2xl ">
