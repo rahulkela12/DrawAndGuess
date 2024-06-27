@@ -37,16 +37,17 @@ io.on('connection', (socket) => {
     socket.on('privateCreate',(data)=>{
          const privateId = `room-${data.hints}`;
          const privateRoomId = Object.keys(privateRooms);
-         for(let privateroom of privateRoomId){
+         for(let privateroom of privateRoomId){ 
             if(privateroom === privateId){
                 if(privateRooms[privateroom].length !== 0){
-                    socket.emit('used',{message:"Room in Use"});
+                    socket.emit('message',{message:"Used"});
                     return;
                 }
             } 
          }
          privateRooms[privateId] = [];
          privateRoomSize[privateId] = data.players;
+         socket.emit('message',{message:"Created"});
     });
     socket.on('joinPrivate',(data)=>{
         const roomIds = data.roomId;
@@ -62,7 +63,17 @@ io.on('connection', (socket) => {
          if(found === false){ 
             socket.emit("NoRoomFound",{message:"NoRoomFound"});
          }else{
-            if(privateRooms[privateRoomId].length >= privateRoomSize[privateId]){
+            if(privatePlayerRoom[socket.id] === privateId){
+                const index =  privateRooms[privateId].findIndex(player => player.id === socket.id);
+                if(index !== -1){
+                    const player = privateRooms[privateId][index];
+                    privateRooms[privateId].splice(index, 1);
+                    io.to(privateId).emit('message', { sender: 'System', text: `${player.name} has changed name to ${name}!` });
+                    privateRooms[privateId].push({ id: socket.id, name, points: player.points});
+                }
+                io.to(privateId).emit('playerList', privateRooms[privateId]); 
+            }
+            else if(privateRooms[privateId].length >= privateRoomSize[privateId]){
                socket.emit("RoomFull",{sender: 'System',text:"RoomFull"});
                console.log("Room Full");
                return;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
@@ -13,14 +13,11 @@ const GameForm = ({name}) => {
   const [wordMode, setWordMode] = useState('Normal');
   const [wordCount, setWordCount] = useState(3);
   const [hints, setHints] = useState(2);
-  const [messages, setMessages] = useState("");
+  const[message,setMessages] = useState("");
 
   const navigate = useNavigate();
   
-  const onMessage = (message) => {
-    console.log("Received message:", message);
-    setMessages(message);
-  };
+ 
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -34,16 +31,24 @@ const GameForm = ({name}) => {
     //   hints
     // });
     // Add your form submission logic here
+    
+    socket.emit('privateCreate',{players,hints,name,create:true});
+    
+    socket.on("message",(message)=>{
+      setMessages(message.message);
+   });
+  };
+  useEffect(() => {
+    console.log(message);
     const state = {
       code:hints,name
     }
-    socket.emit('privateCreate',{players,hints,name,create:true});
-    socket.on("used",onMessage);
-    if(messages === "")
-    navigate('/privatePlay',{state});
-    else
-    toast.error(messages);
-  };
+    if(message === "Used"){
+      toast.error(message);
+    }
+    if(message === "Created")
+      navigate('/privatePlay',{state}); 
+  }, [message])
 
   return (
     
