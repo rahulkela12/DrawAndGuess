@@ -1,15 +1,26 @@
 import React from 'react';
 
 const Leaderboard = ({ players }) => {
-  const leaderboardHeight = players.length * 16 + 80;
   return (
-    <div className={`bg-gray-200 p-4 rounded-lg h-${leaderboardHeight} `}>
-      <h2 className="text-xl font-bold mb-4">Leaderboard</h2>
-      <ul>
+    <div className="bg-gradient-to-b from-blue-800 to-blue-600 p-4 rounded-lg shadow-md max-w-sm mx-auto">
+      <h2 className="text-xl font-bold mb-3 text-center text-yellow-300 uppercase tracking-wide">Leaderboard</h2>
+      <ul className="space-y-2">
         {players.map((player, index) => (
-          <li key={index} className="mb-2 flex justify-between">
-            <span>{player.name}</span>
-            <span className="ml-2 text-sm text-gray-600">{player.points} points</span>
+          <li 
+            key={index} 
+            className={`flex justify-between items-center p-2 rounded ${
+              index === 0 ? 'bg-yellow-400' :
+              index === 1 ? 'bg-gray-300' :
+              index === 2 ? 'bg-orange-400' : 'bg-white'
+            } transition-all duration-200 hover:scale-102`}
+          >
+            <div className="flex items-center">
+              <span className="text-lg font-bold mr-2 w-6 text-center">
+                {index + 1}
+              </span>
+              <span className="font-medium text-sm">{player.name}</span>
+            </div>
+            <span className="font-bold text-sm text-blue-800">{player.points} pts</span>
           </li>
         ))}
       </ul>
