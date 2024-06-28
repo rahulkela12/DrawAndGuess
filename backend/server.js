@@ -33,6 +33,35 @@ const getRoom = () => {
 };
 
 io.on('connection', (socket) => {
+
+    socket.on('startPath',(data)=>{
+        const room = playerRooms[socket.id];
+        if(room){
+            socket.to(room).emit('startPath',data);
+        }
+    });
+    
+    socket.on('draw',(data)=>{
+        const room = playerRooms[socket.id];
+        if(room){
+            socket.to(room).emit('draw',data);
+        }
+    });
+
+    socket.on('endPath', () => {
+        const room = playerRooms[socket.id];
+        if (room) {
+          socket.to(room).emit('endPath');
+        }
+      });
+
+    socket.on('clearCanvas',()=>{
+        const room =playerRooms[socket.id];
+        if(room){
+            socket.to(room).emit('clearCanvas');
+        }
+    });
+
     console.log('User connected with id:', socket.id);
     socket.on('privateCreate',(data)=>{
          const privateId = `room-${data.hints}`;

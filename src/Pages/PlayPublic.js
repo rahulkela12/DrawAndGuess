@@ -43,20 +43,10 @@ const PlayPublic = () => {
 
 
   const handleSendMessage = useCallback((message) => {
-    // console.log("Sending message:", message);
     socket.emit('message', message);
   }, []);
   
 
-  // useEffect(() => {
-  //   if (state && state.name) {
-  //     const newPlayer = { name: state.name, points: 0 };
-  //     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
-  //     setMessages((prevMessages) => [...prevMessages, `${state.name} joined the room!`]);
-  //   }
-  // }, [state]);
-
-  // console.log(state);
 
   return (
     <>
@@ -67,8 +57,8 @@ const PlayPublic = () => {
               <div className="w-1/4 mt-1 mr-0.5 flex-shrink-0 overflow-y-auto p-2">
                 <Leaderboard players={players} />
               </div>
-              <div className="flex-1 mt-1   flex flex-col p-2 ">
-                <DrawingBoard />
+              <div className="flex-1 mt-1 flex flex-col p-2 ">
+                <DrawingBoard socket={socket} />
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox
