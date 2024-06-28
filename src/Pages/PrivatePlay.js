@@ -57,17 +57,6 @@ const PrivatePlay = () => {
     // console.log("Sending message:", message);
     socket.emit('messagePrivate', message);
   }, []);
-  
-
-  // useEffect(() => {
-  //   if (state && state.name) {
-  //     const newPlayer = { name: state.name, points: 0 };
-  //     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
-  //     setMessages((prevMessages) => [...prevMessages, `${state.name} joined the room!`]);
-  //   }
-  // }, [state]);
-
-  // console.log(state);
 
   return (
     <>
@@ -79,7 +68,7 @@ const PrivatePlay = () => {
                 <Leaderboard players={privatePlayers} />
               </div>
               <div className="flex-1 mt-1   flex flex-col p-2 ">
-                <DrawingBoard />
+                <DrawingBoard socket={socket} />
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox

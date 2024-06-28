@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const http = require('http');
-const cors = require('cors');
+const http = require("http");
+const cors = require("cors");
 
 const server = http.createServer(app);
 app.use(cors());
@@ -9,9 +9,9 @@ app.use(cors());
 const { Server } = require("socket.io");
 
 const io = new Server(server, {
-    cors: {
-        origin: '*',
-    }
+  cors: {
+    origin: "*",
+  },
 });
 
 const ROOM_SIZE = 3;
@@ -23,175 +23,219 @@ const privatePlayerRoom = {};
 const privateRoomSize = {};
 
 const getRoom = () => {
-    const roomIds = Object.keys(rooms);
-    for (let room of roomIds) {
-        if (rooms[room].length < ROOM_SIZE) return room;
-    }
-    const newRoom = `room-${roomIds.length + 1}`;
-    rooms[newRoom] = [];
-    return newRoom;
+  const roomIds = Object.keys(rooms);
+  for (let room of roomIds) {
+    if (rooms[room].length < ROOM_SIZE) return room;
+  }
+  const newRoom = `room-${roomIds.length + 1}`;
+  rooms[newRoom] = [];
+  return newRoom;
 };
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
 
-    socket.on('startPath',(data)=>{
-        const room = playerRooms[socket.id];
-        if(room){
-            socket.to(room).emit('startPath',data);
-        }
-    });
-    
-    socket.on('draw',(data)=>{
-        const room = playerRooms[socket.id];
-        if(room){
-            socket.to(room).emit('draw',data);
-        }
-    });
+  socket.on("startPath", (data) => {
+    const room = playerRooms[socket.id];
+    const proom = privatePlayerRoom[socket.id];
+    if (room) {
+      socket.to(room).emit("startPath", data);
+    } else if (proom) {
+      socket.to(proom).emit("startPath", data);
+    }
+  });
 
-    socket.on('endPath', () => {
-        const room = playerRooms[socket.id];
-        if (room) {
-          socket.to(room).emit('endPath');
+  socket.on("draw", (data) => {
+    const room = playerRooms[socket.id];
+    const proom = privatePlayerRoom[socket.id];
+
+    if (room) {
+      socket.to(room).emit("draw", data);
+    } else if (proom) {
+      socket.to(proom).emit("draw", data);
+    }
+  });
+
+  socket.on("endPath", () => {
+    const room = playerRooms[socket.id];
+    const proom = privatePlayerRoom[socket.id];
+
+    if (room) {
+      socket.to(room).emit("endPath");
+    } else if (proom) {
+      socket.to(proom).emit("endPath");
+    }
+  });
+
+  socket.on("clearCanvas", () => { 
+    const room = playerRooms[socket.id];
+    const proom = privatePlayerRoom[socket.id];
+
+    if (room) {
+      socket.to(room).emit("clearCanvas");
+    } else if (proom) {
+      socket.to(proom).emit("clearCanvas");
+    }
+  });
+
+  console.log("User connected with id:", socket.id);
+  socket.on("privateCreate", (data) => {
+    const privateId = `room-${data.hints}`;
+    const privateRoomId = Object.keys(privateRooms);
+    for (let privateroom of privateRoomId) {
+      if (privateroom === privateId) {
+        if (privateRooms[privateroom].length !== 0) {
+          socket.emit("message", { message: "Used" });
+          return;
         }
+      }
+    }
+    privateRooms[privateId] = [];
+    privateRoomSize[privateId] = data.players;
+    socket.emit("message", { message: "Created" });
+  });
+  socket.on("joinPrivate", (data) => {
+    const roomIds = data.roomId;
+    const name = data.name;
+    const privateId = `room-${roomIds}`;
+    let found = false;
+    const privateRoomId = Object.keys(privateRooms);
+    for (let privateroom of privateRoomId) {
+      if (privateroom === privateId) {
+        found = true;
+      }
+    }
+    if (found === false) {
+      socket.emit("NoRoomFound", { message: "NoRoomFound" });
+    } else {
+      if (privatePlayerRoom[socket.id] === privateId) {
+        const index = privateRooms[privateId].findIndex(
+          (player) => player.id === socket.id
+        );
+        if (index !== -1) {
+          const player = privateRooms[privateId][index];
+          privateRooms[privateId].splice(index, 1);
+          io.to(privateId).emit("message", {
+            sender: "System",
+            text: `${player.name} has changed name to ${name}!`,
+          });
+          privateRooms[privateId].push({
+            id: socket.id,
+            name,
+            points: player.points,
+          });
+        }
+        io.to(privateId).emit("playerList", privateRooms[privateId]);
+      } else if (privateRooms[privateId].length >= privateRoomSize[privateId]) {
+        socket.emit("RoomFull", { sender: "System", text: "RoomFull" });
+        console.log("Room Full");
+        return;
+      } else {
+        socket.join(privateId);
+        privatePlayerRoom[socket.id] = privateId;
+        io.to(privateId).emit("message", {
+          sender: "System",
+          text: `${name} joined the room!`,
+        });
+        privateRooms[privateId].push({ id: socket.id, name: name, points: 0 });
+        console.log(privateRooms[privateId]);
+        console.log(`${name} joined room ${privateId}`);
+        io.to(privateId).emit("playerList", privateRooms[privateId]);
+      }
+
+      socket.on("messagePrivate", (message) => {
+        console.log(`Message from ${name} in room ${privateId}:`, message);
+        io.to(privateId).emit("message", { sender: name, text: message });
       });
 
-    socket.on('clearCanvas',()=>{
-        const room =playerRooms[socket.id];
-        if(room){
-            socket.to(room).emit('clearCanvas');
-        }
-    });
-
-    console.log('User connected with id:', socket.id);
-    socket.on('privateCreate',(data)=>{
-         const privateId = `room-${data.hints}`;
-         const privateRoomId = Object.keys(privateRooms);
-         for(let privateroom of privateRoomId){ 
-            if(privateroom === privateId){
-                if(privateRooms[privateroom].length !== 0){
-                    socket.emit('message',{message:"Used"});
-                    return;
-                }
-            } 
-         }
-         privateRooms[privateId] = [];
-         privateRoomSize[privateId] = data.players;
-         socket.emit('message',{message:"Created"});
-    });
-    socket.on('joinPrivate',(data)=>{
-        const roomIds = data.roomId;
-        const name = data.name;
-        const privateId = `room-${roomIds}`;
-        let found = false; 
-        const privateRoomId = Object.keys(privateRooms);
-         for(let privateroom of privateRoomId){
-            if(privateroom === privateId){
-                found = true;
-            } 
-         }
-         if(found === false){ 
-            socket.emit("NoRoomFound",{message:"NoRoomFound"});
-         }else{
-            if(privatePlayerRoom[socket.id] === privateId){
-                const index =  privateRooms[privateId].findIndex(player => player.id === socket.id);
-                if(index !== -1){
-                    const player = privateRooms[privateId][index];
-                    privateRooms[privateId].splice(index, 1);
-                    io.to(privateId).emit('message', { sender: 'System', text: `${player.name} has changed name to ${name}!` });
-                    privateRooms[privateId].push({ id: socket.id, name, points: player.points});
-                }
-                io.to(privateId).emit('playerList', privateRooms[privateId]); 
-            }
-            else if(privateRooms[privateId].length >= privateRoomSize[privateId]){
-               socket.emit("RoomFull",{sender: 'System',text:"RoomFull"});
-               console.log("Room Full");
-               return;
-            }else{
-                socket.join(privateId);
-                privatePlayerRoom[socket.id] = privateId;
-                io.to(privateId).emit('message',{ sender: 'System', text: `${name} joined the room!` })
-                privateRooms[privateId].push({ id: socket.id, name:name, points: 0 })
-                console.log(privateRooms[privateId]);
-                console.log(`${name} joined room ${privateId}`);
-                io.to(privateId).emit('playerList', privateRooms[privateId]);   
-            }
-             
-            socket.on('messagePrivate', (message) => {
-                console.log(`Message from ${name} in room ${privateId}:`, message);
-                io.to(privateId).emit('message', { sender: name, text: message });
+      socket.on("disconnect", () => {
+        console.log(`User disconnected: ${socket.id} from room ${privateId}`);
+        if (privateRooms[privateId]) {
+          const playerIndex = privateRooms[privateId].findIndex(
+            (player) => player.id === socket.id
+          );
+          if (playerIndex !== -1) {
+            const player = privateRooms[privateId][playerIndex];
+            privateRooms[privateId].splice(playerIndex, 1);
+            io.to(privateId).emit("playerList", privateRooms[privateId]);
+            io.to(privateId).emit("message", {
+              sender: "System",
+              text: `${player.name} left the room`,
             });
-
-                socket.on('disconnect',()=>{
-                    console.log(`User disconnected: ${socket.id} from room ${privateId}`);
-                    if (privateRooms[privateId]) {
-                        const playerIndex = privateRooms[privateId].findIndex(player => player.id === socket.id);
-                        if (playerIndex !== -1) {
-                            const player = privateRooms[privateId][playerIndex];
-                            privateRooms[privateId].splice(playerIndex, 1);
-                            io.to(privateId).emit('playerList', privateRooms[privateId]);
-                            io.to(privateId).emit('message', { sender: 'System', text: `${player.name} left the room` });
-                            console.log(`${player.name} left room ${privateId}`);
-                            console.log(`Room ${privateId} players:`, privateRooms[privateId]);
-                            if (privateRooms[privateId].length === 0) {
-                                delete privateRooms[privateId];
-                                console.log(`Room ${privateId} deleted`);
-                            }
-                        }
-                    }
-                    delete playerRooms[socket.id];
-                });    
-         }
-    })
-    socket.on('join', ({ name }) => {
-        let userRoom;
-        if (playerRooms[socket.id]) {
-             userRoom = playerRooms[socket.id];
-            const index =  rooms[userRoom].findIndex(player => player.id === socket.id);
-            if(index !== -1){
-                const player = rooms[userRoom][index];
-                rooms[userRoom].splice(index, 1);
-                io.to(userRoom).emit('message', { sender: 'System', text: `${player.name} has changed name to ${name}!` });
-                rooms[userRoom].push({ id: socket.id, name, points: player.points});
+            console.log(`${player.name} left room ${privateId}`);
+            console.log(`Room ${privateId} players:`, privateRooms[privateId]);
+            if (privateRooms[privateId].length === 0) {
+              delete privateRooms[privateId];
+              console.log(`Room ${privateId} deleted`);
             }
-        }else{
-        userRoom = getRoom();
-        socket.join(userRoom);
-        playerRooms[socket.id] = userRoom;
-        io.to(userRoom).emit('message', { sender: 'System', text: `${name} joined the room!` });
-        rooms[userRoom].push({ id: socket.id, name, points: 0 });
-        console.log(`${name} joined room ${userRoom}`);
+          }
         }
-        console.log(`Room ${userRoom} has players:`, rooms[userRoom]);
-
-        io.to(userRoom).emit('playerList', rooms[userRoom]);
-
-        socket.on('message', (message) => {
-            console.log(`Message from ${name} in room ${userRoom}:`, message);
-            io.to(userRoom).emit('message', { sender: name, text: message });
+        delete playerRooms[socket.id];
+      });
+    }
+  });
+  socket.on("join", ({ name }) => {
+    let userRoom;
+    if (playerRooms[socket.id]) {
+      userRoom = playerRooms[socket.id];
+      const index = rooms[userRoom].findIndex(
+        (player) => player.id === socket.id
+      );
+      if (index !== -1) {
+        const player = rooms[userRoom][index];
+        rooms[userRoom].splice(index, 1);
+        io.to(userRoom).emit("message", {
+          sender: "System",
+          text: `${player.name} has changed name to ${name}!`,
         });
+        rooms[userRoom].push({ id: socket.id, name, points: player.points });
+      }
+    } else {
+      userRoom = getRoom();
+      socket.join(userRoom);
+      playerRooms[socket.id] = userRoom;
+      io.to(userRoom).emit("message", {
+        sender: "System",
+        text: `${name} joined the room!`,
+      });
+      rooms[userRoom].push({ id: socket.id, name, points: 0 });
+      console.log(`${name} joined room ${userRoom}`);
+    }
+    console.log(`Room ${userRoom} has players:`, rooms[userRoom]);
 
-        socket.on('disconnect', () => {
-            console.log(`User disconnected: ${socket.id} from room ${userRoom}`);
-            if (rooms[userRoom]) {
-                const playerIndex = rooms[userRoom].findIndex(player => player.id === socket.id);
-                if (playerIndex !== -1) {
-                    const player = rooms[userRoom][playerIndex];
-                    rooms[userRoom].splice(playerIndex, 1);
-                    io.to(userRoom).emit('playerList', rooms[userRoom]);
-                    io.to(userRoom).emit('message', { sender: 'System', text: `${player.name} left the room` });
-                    console.log(`${player.name} left room ${userRoom}`);
-                    console.log(`Room ${userRoom} players:`, rooms[userRoom]);
-                    if (rooms[userRoom].length === 0) {
-                        delete rooms[userRoom];
-                        console.log(`Room ${userRoom} deleted`);
-                    }
-                }
-            }
-            delete playerRooms[socket.id];
-        });
+    io.to(userRoom).emit("playerList", rooms[userRoom]);
+
+    socket.on("message", (message) => {
+      console.log(`Message from ${name} in room ${userRoom}:`, message);
+      io.to(userRoom).emit("message", { sender: name, text: message });
     });
+
+    socket.on("disconnect", () => {
+      console.log(`User disconnected: ${socket.id} from room ${userRoom}`);
+      if (rooms[userRoom]) {
+        const playerIndex = rooms[userRoom].findIndex(
+          (player) => player.id === socket.id
+        );
+        if (playerIndex !== -1) {
+          const player = rooms[userRoom][playerIndex];
+          rooms[userRoom].splice(playerIndex, 1);
+          io.to(userRoom).emit("playerList", rooms[userRoom]);
+          io.to(userRoom).emit("message", {
+            sender: "System",
+            text: `${player.name} left the room`,
+          });
+          console.log(`${player.name} left room ${userRoom}`);
+          console.log(`Room ${userRoom} players:`, rooms[userRoom]);
+          if (rooms[userRoom].length === 0) {
+            delete rooms[userRoom];
+            console.log(`Room ${userRoom} deleted`);
+          }
+        }
+      }
+      delete playerRooms[socket.id];
+    });
+  });
 });
 
 server.listen(5000, () => {
-    console.log('Listening on port 5000');
+  console.log("Listening on port 5000");
 });
