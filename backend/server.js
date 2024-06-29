@@ -218,9 +218,9 @@ io.on("connection", (socket) => {
 
     io.to(userRoom).emit("playerList", rooms[userRoom]);
 
-    if(rooms[userRoom].length == 2 && !drawingAcess[userRoom] ){
+    if(rooms[userRoom].length === ROOM_SIZE && !drawingAcess[userRoom] ){
       selectRadnomDrawer(userRoom);
-      setInterval(()=> selectRadnomDrawer(userRoom),6000);
+      setInterval(()=> selectRadnomDrawer(userRoom),60000);
     }
 
     socket.on("message", (message) => {

@@ -14,6 +14,22 @@ const PlayPublic = () => {
   const [messages, setMessages] = useState([]);
   const {state} = useLocation();
   const hasJoined = useRef(false);
+  const [canDraw, setCanDraw] = useState(false);
+  const [drawer, setDrawer] = useState(null); 
+  const [drawerId,setDrawerId] = useState();
+
+  useEffect(() => {
+    socket.on('drawingAccess', ({ playerId, playerName }) => {
+      setCanDraw(socket.id === playerId);
+      setDrawerId(playerId);
+      setDrawer(playerName);
+      alert(`Now ${playerName} has access to draw`);
+    });
+
+    return () => {
+      socket.off('drawingAccess');
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (state && state.name && !hasJoined.current) {
@@ -55,10 +71,10 @@ const PlayPublic = () => {
             <TopBar />
             <div className="flex h-[calc(100vh-13rem)]">
               <div className="w-1/4 mt-1 mr-0.5 flex-shrink-0 overflow-y-auto p-2">
-                <Leaderboard players={players} />
+                <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>
               </div>
               <div className="flex-1 mt-1 flex flex-col p-2 ">
-                <DrawingBoard socket={socket} />
+                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer}/>
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox

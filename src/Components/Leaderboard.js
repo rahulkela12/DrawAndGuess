@@ -1,6 +1,7 @@
 import React from 'react';
 
-const Leaderboard = ({ players }) => {
+const Leaderboard = ({ players,self,drawerId}) => {
+  console.log(self);
   return (
     <div className="bg-gradient-to-b from-blue-800 to-blue-600 p-4 rounded-lg shadow-md max-w-sm mx-auto">
       <h2 className="text-xl font-bold mb-3 text-center text-yellow-300 uppercase tracking-wide">Leaderboard</h2>
@@ -9,9 +10,8 @@ const Leaderboard = ({ players }) => {
           <li 
             key={index} 
             className={`flex justify-between items-center p-2 rounded ${
-              index === 0 ? 'bg-yellow-400' :
-              index === 1 ? 'bg-gray-300' :
-              index === 2 ? 'bg-orange-400' : 'bg-white'
+              self === player.id ? 'bg-yellow-400' :
+              drawerId === player.id? 'bg-green-400':'bg-gray-300'
             } transition-all duration-200 hover:scale-102`}
           >
             <div className="flex items-center">

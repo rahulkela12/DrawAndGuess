@@ -1,25 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
-const DrawingBoard = ({ socket }) => {
+const DrawingBoard = ({ socket,canDraw,drawer}) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [lineWidth, setLineWidth] = useState(5);
-  const [canDraw, setCanDraw] = useState(false);
-  const [drawer, setDrawer] = useState(null);
-
-  useEffect(() => {
-    socket.on('drawingAccess', ({ playerId, playerName }) => {
-      setCanDraw(socket.id === playerId);
-      setDrawer(playerName);
-      alert(`Now ${playerName} has access to draw`);
-    });
-
-    return () => {
-      socket.off('drawingAccess');
-    };
-  }, [socket]);
+  
+ 
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -107,7 +95,9 @@ const DrawingBoard = ({ socket }) => {
         height={500}
         className="border border-gray-300 bg-white"
       />
-      <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
+      {
+        canDraw && <>
+        <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
         <input
           type="color"
           value={color}
@@ -124,6 +114,8 @@ const DrawingBoard = ({ socket }) => {
         />
         <button onClick={clearCanvas} disabled={!canDraw}>Clear Canvas</button>
       </div>
+        </>
+      }
       <div>
         {drawer ? (
           canDraw ? (
