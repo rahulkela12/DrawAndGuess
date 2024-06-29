@@ -6,16 +6,27 @@ const DrawingBoard = ({ socket }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [lineWidth, setLineWidth] = useState(5);
-
-  
-
+  const [canDraw, setCanDraw] = useState(false);
+  const [drawer, setDrawer] = useState(null);
 
   useEffect(() => {
+    socket.on('drawingAccess', ({ playerId, playerName }) => {
+      setCanDraw(socket.id === playerId);
+      setDrawer(playerName);
+      alert(`Now ${playerName} has access to draw`);
+    });
 
+    return () => {
+      socket.off('drawingAccess');
+    };
+  }, [socket]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
     const startDrawing = (e) => {
+      if (!canDraw) return;
       setIsDrawing(true);
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -26,8 +37,7 @@ const DrawingBoard = ({ socket }) => {
     };
 
     const draw = (e) => {
-      if (!isDrawing) return;
-
+      if (!isDrawing || !canDraw) return;
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -43,7 +53,7 @@ const DrawingBoard = ({ socket }) => {
     };
 
     const stopDrawing = () => {
-      if (isDrawing) {
+      if (isDrawing && canDraw) {
         setIsDrawing(false);
         socket.emit('endPath');
       }
@@ -80,7 +90,7 @@ const DrawingBoard = ({ socket }) => {
       canvas.removeEventListener('mouseup', stopDrawing);
       canvas.removeEventListener('mouseout', stopDrawing);
     };
-  }, [isDrawing, color, lineWidth, socket]);
+  }, [isDrawing, color, lineWidth, socket, canDraw]);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -102,22 +112,28 @@ const DrawingBoard = ({ socket }) => {
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}
-          className="border-2 border-gray-300 rounded-md p-1"
+          disabled={!canDraw}
         />
         <input
           type="range"
           min="1"
           max="20"
           value={lineWidth}
-          onChange={(e) => setLineWidth(parseInt(e.target.value))}
-          className="w-full sm:w-auto"
+          onChange={(e) => setLineWidth(e.target.value)}
+          disabled={!canDraw}
         />
-        <button
-          onClick={clearCanvas}
-          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200"
-        >
-          Clear Canvas
-        </button>
+        <button onClick={clearCanvas} disabled={!canDraw}>Clear Canvas</button>
+      </div>
+      <div>
+        {drawer ? (
+          canDraw ? (
+            <p>You have access to draw</p>
+          ) : (
+            <p>{drawer} has access to draw</p>
+          )
+        ) : (
+          <p className='bg-white mt-2'>Waiting for more players to join...</p>
+        )}
       </div>
     </div>
   );
