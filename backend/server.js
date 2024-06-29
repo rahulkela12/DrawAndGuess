@@ -22,6 +22,8 @@ const privateRooms = {};
 const privatePlayerRoom = {};
 const privateRoomSize = {};
 
+const drawingAcess = {};
+
 const getRoom = () => {
   const roomIds = Object.keys(rooms);
   for (let room of roomIds) {
@@ -32,12 +34,24 @@ const getRoom = () => {
   return newRoom;
 };
 
-io.on("connection", (socket) => {
+const selectRadnomDrawer = (room) => {
+  const players = rooms[room];
+  if (players && players.length === ROOM_SIZE) {
+    const randomIndex = Math.floor(Math.random() * players.length);
+    const randomPlayer = players[randomIndex];
+    drawingAcess[room] = randomPlayer.id;
+    io.to(room).emit("drawingAccess", {
+      playerId: randomPlayer.id,
+      playerName: randomPlayer.name,
+    });
+  }
+};
 
+io.on("connection", (socket) => {
   socket.on("startPath", (data) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
-    if (room) {
+    if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("startPath", data);
     } else if (proom) {
       socket.to(proom).emit("startPath", data);
@@ -48,7 +62,7 @@ io.on("connection", (socket) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
 
-    if (room) {
+    if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("draw", data);
     } else if (proom) {
       socket.to(proom).emit("draw", data);
@@ -59,18 +73,18 @@ io.on("connection", (socket) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
 
-    if (room) {
+    if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("endPath");
     } else if (proom) {
       socket.to(proom).emit("endPath");
     }
   });
 
-  socket.on("clearCanvas", () => { 
+  socket.on("clearCanvas", () => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
 
-    if (room) {
+    if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("clearCanvas");
     } else if (proom) {
       socket.to(proom).emit("clearCanvas");
@@ -204,6 +218,11 @@ io.on("connection", (socket) => {
 
     io.to(userRoom).emit("playerList", rooms[userRoom]);
 
+    if(rooms[userRoom].length == 2 && !drawingAcess[userRoom] ){
+      selectRadnomDrawer(userRoom);
+      setInterval(()=> selectRadnomDrawer(userRoom),6000);
+    }
+
     socket.on("message", (message) => {
       console.log(`Message from ${name} in room ${userRoom}:`, message);
       io.to(userRoom).emit("message", { sender: name, text: message });
@@ -227,7 +246,10 @@ io.on("connection", (socket) => {
           console.log(`Room ${userRoom} players:`, rooms[userRoom]);
           if (rooms[userRoom].length === 0) {
             delete rooms[userRoom];
+            delete drawingAcess[userRoom];
             console.log(`Room ${userRoom} deleted`);
+          }else if(drawingAcess[userRoom] === socket.id){
+            selectRadnomDrawer(userRoom);
           }
         }
       }
