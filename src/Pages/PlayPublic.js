@@ -11,6 +11,7 @@ const socket = io('http://localhost:5000')
 
 const PlayPublic = () => {
   const [players, setPlayers] = useState([]);
+  const [selectedWord, setSelectedWord] = useState("");
   const [messages, setMessages] = useState([]);
   const {state} = useLocation();
   const hasJoined = useRef(false);
@@ -74,7 +75,7 @@ const PlayPublic = () => {
                 <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>
               </div>
               <div className="flex-1 mt-1 flex flex-col p-2 ">
-                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer}/>
+                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer} setSelectedWord={setSelectedWord}/>
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox
