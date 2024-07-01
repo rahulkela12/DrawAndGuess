@@ -16,12 +16,15 @@ const PlayPublic = () => {
   const {state} = useLocation();
   const hasJoined = useRef(false);
   const [canDraw, setCanDraw] = useState(false);
-  const [drawer, setDrawer] = useState(null); 
+  const [drawer, setDrawer] = useState(null);
+  const [isWordSelected, setIsWordSelected] = useState(false); 
   const [drawerId,setDrawerId] = useState();
 
   useEffect(() => {
     socket.on('drawingAccess', ({ playerId, playerName }) => {
       setCanDraw(socket.id === playerId);
+      setIsWordSelected(false);
+      setSelectedWord("");
       setDrawerId(playerId);
       setDrawer(playerName);
       alert(`Now ${playerName} has access to draw`);
@@ -52,6 +55,12 @@ const PlayPublic = () => {
     socket.on('playerList', onPlayerList);
     socket.on('message', onMessage);
 
+    socket.on('word',({word})=>{
+      console.log(word);
+      setSelectedWord(word);
+      setIsWordSelected(true);
+    });
+
     return () => {
       socket.off('playerList', onPlayerList);
       socket.off('message', onMessage);
@@ -75,7 +84,9 @@ const PlayPublic = () => {
                 <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>
               </div>
               <div className="flex-1 mt-1 flex flex-col p-2 ">
-                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer} setSelectedWord={setSelectedWord}/>
+                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer} setSelectedWord={setSelectedWord}
+                  isWordSelected={isWordSelected} setIsWordSelected={setIsWordSelected}
+                />
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox

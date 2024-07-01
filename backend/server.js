@@ -47,16 +47,30 @@ const selectRadnomDrawer = (room) => {
   }
 };
 
+const selectRadnomPrivateDrawer = (room) => {
+  const players = privateRooms[room];
+  if (players && players.length === privateRoomSize[room]) {
+    const randomIndex = Math.floor(Math.random() * players.length);
+    const randomPlayer = players[randomIndex];
+    drawingAcess[room] = randomPlayer.id;
+    io.to(room).emit("drawingAccess", {
+      playerId: randomPlayer.id,
+      playerName: randomPlayer.name,
+    });
+  }
+};
+
 io.on("connection", (socket) => {
   socket.on("startPath", (data) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
     if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("startPath", data);
-    } else if (proom) {
+    } else if (proom && drawingAcess[proom] === socket.id) {
       socket.to(proom).emit("startPath", data);
     }
   });
+
 
   socket.on("draw", (data) => {
     const room = playerRooms[socket.id];
@@ -64,7 +78,7 @@ io.on("connection", (socket) => {
 
     if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("draw", data);
-    } else if (proom) {
+    } else if (proom && drawingAcess[proom] === socket.id) {
       socket.to(proom).emit("draw", data);
     }
   });
@@ -75,7 +89,7 @@ io.on("connection", (socket) => {
 
     if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("endPath");
-    } else if (proom) {
+    } else if (proom && drawingAcess[proom] === socket.id) {
       socket.to(proom).emit("endPath");
     }
   });
@@ -86,10 +100,20 @@ io.on("connection", (socket) => {
 
     if (room && drawingAcess[room] === socket.id) {
       socket.to(room).emit("clearCanvas");
-    } else if (proom) {
+    } else if (proom && drawingAcess[proom] === socket.id) {
       socket.to(proom).emit("clearCanvas");
     }
   });
+
+  socket.on('word',(({word})=>{
+    const room = playerRooms[socket.id];
+    const proom = privatePlayerRoom[socket.id];
+   if(room){
+     io.to(room).emit('word',{word});
+   }else if(proom){
+    io.to(proom).emit('word',{word});
+   }
+  }));
 
   console.log("User connected with id:", socket.id);
   socket.on("privateCreate", (data) => {
@@ -139,6 +163,10 @@ io.on("connection", (socket) => {
           });
         }
         io.to(privateId).emit("playerList", privateRooms[privateId]);
+        if(privateRooms[privateId].length === privateRoomSize[privateId] && !drawingAcess[privateId] ){
+          selectRadnomPrivateDrawer(privateId);
+          setInterval(()=> selectRadnomPrivateDrawer(privateId),60000);
+        }
       } else if (privateRooms[privateId].length >= privateRoomSize[privateId]) {
         socket.emit("RoomFull", { sender: "System", text: "RoomFull" });
         console.log("Room Full");
@@ -154,6 +182,11 @@ io.on("connection", (socket) => {
         console.log(privateRooms[privateId]);
         console.log(`${name} joined room ${privateId}`);
         io.to(privateId).emit("playerList", privateRooms[privateId]);
+
+        if(privateRooms[privateId].length === privateRoomSize[privateId] && !drawingAcess[privateId] ){
+          selectRadnomPrivateDrawer(privateId);
+          setInterval(()=> selectRadnomPrivateDrawer(privateId),60000);
+        }
       }
 
       socket.on("messagePrivate", (message) => {
@@ -178,8 +211,11 @@ io.on("connection", (socket) => {
             console.log(`${player.name} left room ${privateId}`);
             console.log(`Room ${privateId} players:`, privateRooms[privateId]);
             if (privateRooms[privateId].length === 0) {
+              delete drawingAcess[privateId];
               delete privateRooms[privateId];
               console.log(`Room ${privateId} deleted`);
+            }else if(drawingAcess[privateId] === socket.id){
+              selectRadnomPrivateDrawer(privateId);
             }
           }
         }

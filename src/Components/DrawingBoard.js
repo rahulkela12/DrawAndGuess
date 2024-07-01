@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
-const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord}) => {
+const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelected,isWordSelected}) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [lineWidth, setLineWidth] = useState(5);
-  const [isWordSelected, setIsWordSelected] = useState(false);
   const [showOptions, setShowOptions] = useState(true);
 
   useEffect(() => {
@@ -91,6 +90,7 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord}) => {
 
   const handleWordSelection = (word) => {
     setSelectedWord(word);
+    socket.emit('word',{word});
     setIsWordSelected(true);
     setShowOptions(false);
   };
