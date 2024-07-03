@@ -165,9 +165,9 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
           <div>
             {drawer ? (
               canDraw ? (
-                <p>You have access to draw</p>
+                <p className="bg-white mt-2">You have access to draw</p>
               ) : (
-                <p>{drawer} has access to draw</p>
+                <p className="bg-white mt-2">{drawer} has access to draw</p>
               )
             ) : (
               <p className="bg-white mt-2">Waiting for more players to join...</p>

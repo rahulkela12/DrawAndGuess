@@ -24,6 +24,55 @@ const privateRoomSize = {};
 
 const drawingAcess = {};
 
+const round_time = 60;
+const total_rounds = 3;
+
+const roomTimers = {};
+const roomRounds = {};
+
+const startGame = (room)=>{
+  roomRounds[room] = 1;
+  startRound(room);
+
+}
+
+const startRound=(room)=>{
+  selectRadnomDrawer(room);
+  roomTimers[room] = round_time;
+  io.to(room).emit('roundStart',{
+    round:roomRounds[room],
+    totalRounds: total_rounds,
+    timeLeft: round_time
+  });
+
+
+  const timer = setInterval(()=>{
+    roomTimers[room]--;
+    io.to(room).emit('timerUpdate',roomTimers[room]);
+
+    if(roomTimers[room] <=0){
+      clearInterval(timer);
+      endRound(room);
+    }
+  },1000);
+};
+
+const endRound=(room)=>{
+  if(roomRounds[room] < total_rounds){
+    roomRounds[room]++;
+    startRound(room);
+  }else{
+    endGame(room);
+  }
+};
+
+const endGame =(room)=>{
+  io.to(room).emit('endGame');
+  // delete roomTimers[room];
+  // delete roomRounds[room];
+  // delete roomDrawnPlayers[room];
+}
+
 const getRoom = () => {
   const roomIds = Object.keys(rooms);
   for (let room of roomIds) {
@@ -35,14 +84,18 @@ const getRoom = () => {
 };
 
 const selectRadnomDrawer = (room) => {
+
   const players = rooms[room];
   if (players && players.length === ROOM_SIZE) {
     const randomIndex = Math.floor(Math.random() * players.length);
     const randomPlayer = players[randomIndex];
     drawingAcess[room] = randomPlayer.id;
+    console.log(randomPlayer.name);
     io.to(room).emit("drawingAccess", {
       playerId: randomPlayer.id,
       playerName: randomPlayer.name,
+      round:roomRounds[room],
+      totalRounds:total_rounds
     });
   }
 };
@@ -223,6 +276,7 @@ io.on("connection", (socket) => {
       });
     }
   });
+
   socket.on("join", ({ name }) => {
     let userRoom;
     if (playerRooms[socket.id]) {
@@ -255,8 +309,9 @@ io.on("connection", (socket) => {
     io.to(userRoom).emit("playerList", rooms[userRoom]);
 
     if(rooms[userRoom].length === ROOM_SIZE && !drawingAcess[userRoom] ){
-      selectRadnomDrawer(userRoom);
-      setInterval(()=> selectRadnomDrawer(userRoom),60000);
+      // selectRadnomDrawer(userRoom);
+      // setInterval(()=> selectRadnomDrawer(userRoom),60000);
+      startGame(userRoom);
     }
 
     socket.on("message", (message) => {

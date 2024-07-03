@@ -19,19 +19,41 @@ const PlayPublic = () => {
   const [drawer, setDrawer] = useState(null);
   const [isWordSelected, setIsWordSelected] = useState(false); 
   const [drawerId,setDrawerId] = useState();
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [round, setRound] = useState(1);
+  const [totalRounds,setTotalRounds] = useState(3);
 
   useEffect(() => {
-    socket.on('drawingAccess', ({ playerId, playerName }) => {
+    socket.on('drawingAccess', ({ playerId, playerName,round,totalRounds }) => {
       setCanDraw(socket.id === playerId);
       setIsWordSelected(false);
       setSelectedWord("");
       setDrawerId(playerId);
       setDrawer(playerName);
+      setRound(round);
+      setTotalRounds(totalRounds);
       alert(`Now ${playerName} has access to draw`);
     });
 
+    socket.on('roundStart',({round,totalRounds,timeLeft})=>{
+      setRound(round);
+      setTotalRounds(totalRounds);
+      setTimeLeft(timeLeft);
+    });
+
+    socket.on('timerUpdate',(newTimeLeft)=>{
+      setTimeLeft(newTimeLeft);
+    });
+
+    socket.on('endGame',()=>{
+      alert('Game over');
+    })
+
     return () => {
       socket.off('drawingAccess');
+      socket.off('roundStart');
+      socket.off('timerUpdate');
+      socket.off('gameEnd');
     };
   }, [socket]);
 
@@ -78,7 +100,7 @@ const PlayPublic = () => {
     <>
         <div className="flex items-center  justify-center mt-20 ">
           <div className="w-full max-w-9xl  shadow-lg rounded-lg">
-            <TopBar />
+            <TopBar timeLeft={timeLeft} round={round} totalRounds={totalRounds} />
             <div className="flex h-[calc(100vh-13rem)]">
               <div className="w-1/4 mt-1 mr-0.5 flex-shrink-0 overflow-y-auto p-2">
                 <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>
