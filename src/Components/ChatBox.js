@@ -15,8 +15,8 @@ const ChatBox = ({ messages, onSendMessage ,socket}) => {
       if(playerId == socket.id) setCanGuess(false);
     });
 
-    socket.on('drawingAccess',()=>{
-      setCanGuess(true);
+    socket.on('drawingAccess',({playerId})=>{
+      setCanGuess(socket.id !== playerId);
     })
 
     return ()=>{

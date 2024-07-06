@@ -19,7 +19,7 @@ const PlayPublic = () => {
   const [drawer, setDrawer] = useState(null);
   const [isWordSelected, setIsWordSelected] = useState(false); 
   const [drawerId,setDrawerId] = useState();
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(80);
   const [round, setRound] = useState(1);
   const [totalRounds,setTotalRounds] = useState(3);
 

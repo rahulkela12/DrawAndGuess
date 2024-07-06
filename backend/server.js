@@ -24,13 +24,21 @@ const privateRoomSize = {};
 
 const drawingAcess = {};
 
-const round_time = 60;
+const round_time = 80;
 const total_rounds = 3;
 
 const roomTimers = {};
 const roomRounds = {};
 
 const currentWords={};
+
+const max_points = 500;
+const min_points = 100;
+
+
+function calculatePoints(timeLeft){
+  return Math.max(min_points,Math.floor(max_points*(timeLeft/round_time)));
+}
 
 const startGame = (room)=>{
   roomRounds[room] = 1;
@@ -93,12 +101,14 @@ const selectRadnomDrawer = (room) => {
     const randomPlayer = players[randomIndex];
     drawingAcess[room] = randomPlayer.id;
     console.log(randomPlayer.name);
+
     io.to(room).emit("drawingAccess", {
       playerId: randomPlayer.id,
       playerName: randomPlayer.name,
       round:roomRounds[room],
       totalRounds:total_rounds
     });
+
   }
 };
 
@@ -317,8 +327,6 @@ io.on("connection", (socket) => {
     io.to(userRoom).emit("playerList", rooms[userRoom]);
 
     if(rooms[userRoom].length === ROOM_SIZE && !drawingAcess[userRoom] ){
-      // selectRadnomDrawer(userRoom);
-      // setInterval(()=> selectRadnomDrawer(userRoom),60000);
       startGame(userRoom);
     }
 
@@ -327,13 +335,15 @@ io.on("connection", (socket) => {
       const name = rooms[room].find(player => player.id === socket.id)?.name;
 
       if(message.toLowerCase() === currentWords[room]){
+        const timeLeft = roomTimers[room];
+        const points = calculatePoints(timeLeft);
 
         io.to(room).emit("message",{sender: "System",text: `${name} guessed the word correctly!`});
         io.to(room).emit('correctGuess',{playerId : socket.id});
         const playerIndex = rooms[room].findIndex(player => player.id === socket.id);
 
         if(playerIndex !== -1){
-          rooms[room][playerIndex].points += 10;
+          rooms[room][playerIndex].points += points;
           io.to(room).emit('playerList',rooms[room]);
         }
       }else{
