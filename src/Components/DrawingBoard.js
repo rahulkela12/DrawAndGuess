@@ -8,6 +8,8 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
   const [lineWidth, setLineWidth] = useState(5);
   const [showOptions, setShowOptions] = useState(true);
 
+
+
   useEffect(() => {
     if (!isWordSelected) return;
 
@@ -96,42 +98,33 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center bg-gray-100 p-6 rounded-lg shadow-lg">
       {!isWordSelected ? canDraw ? (
         <div className="relative mb-4 w-full">
           {showOptions && (
-            <div className=" w-full h-[500px] bg-white border border-gray-300 flex flex-col items-center justify-between">
-              <h2 className="text-lg font-bold mb-4 mt-20">Select a word</h2>
-              <div className="flex flex-col items-center justify-center w-full mb-20">
-                <button
-                  onClick={() => handleWordSelection('apple')}
-                  className="p-2 border border-gray-300 hover:bg-gray-100 w-full text-center mb-2"
-                >
-                  Apple
-                </button>
-                <button
-                  onClick={() => handleWordSelection('banana')}
-                  className="p-2 border border-gray-300 hover:bg-gray-100 w-full text-center mb-2"
-                >
-                  Banana
-                </button>
-                <button
-                  onClick={() => handleWordSelection('cherry')}
-                  className="p-2 border border-gray-300 hover:bg-gray-100 w-full text-center mb-2"
-                >
-                  Cherry
-                </button>
+            <div className="w-full h-[500px] bg-white border-2 border-blue-300 rounded-lg flex flex-col items-center justify-between shadow-md">
+              <h2 className="text-2xl font-bold mb-4 mt-20 text-blue-600">Select a word</h2>
+              <div className="flex flex-col items-center justify-center w-full mb-20 space-y-4">
+                {['apple', 'banana', 'cherry'].map((word) => (
+                  <button
+                    key={word}
+                    onClick={() => handleWordSelection(word)}
+                    className="p-3 border-2 border-blue-300 hover:bg-blue-100 w-3/4 text-center rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    {word.charAt(0).toUpperCase() + word.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
           )}
         </div>
       ) : drawer ? (
-        <div className="flex items-center justify-center w-full h-[500px] border border-gray-300 bg-white">
-          <h1 className="text-lg font-bold capitalize">{drawer} is selecting a word</h1>
+        <div className="flex items-center justify-center w-full h-[500px] border-2 border-blue-300 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold capitalize text-blue-600">{drawer} is selecting a word</h1>
         </div>
       ) : (
-        <div className="flex items-center justify-center w-full h-[500px] border border-gray-300 bg-white">
-          <h1 className="text-lg font-bold capitalize">Waiting for a player to join</h1>
+        <div className="flex items-center justify-center w-full h-[500px] border-2 border-blue-300 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold capitalize text-blue-600">Waiting for a player to join</h1>
         </div>
       ) : (
         <>
@@ -139,15 +132,16 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
             ref={canvasRef}
             width={650}
             height={500}
-            className="border border-gray-300 bg-white"
+            className="border-2 border-blue-300 bg-white rounded-lg shadow-md"
           />
           {canDraw && (
-            <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
+            <div className="mt-6 flex flex-col sm:flex-row items-center gap-6 bg-white p-4 rounded-lg shadow-md">
               <input
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 disabled={!canDraw}
+                className="w-12 h-12 rounded-full cursor-pointer"
               />
               <input
                 type="range"
@@ -156,21 +150,26 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
                 value={lineWidth}
                 onChange={(e) => setLineWidth(e.target.value)}
                 disabled={!canDraw}
+                className="w-48 accent-blue-600"
               />
-              <button onClick={clearCanvas} disabled={!canDraw}>
+              <button 
+                onClick={clearCanvas} 
+                disabled={!canDraw}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400"
+              >
                 Clear Canvas
               </button>
             </div>
           )}
-          <div>
+          <div className="mt-4 text-center">
             {drawer ? (
               canDraw ? (
-                <p className="bg-white mt-2">You have access to draw</p>
+                <p className="bg-green-100 text-green-800 font-semibold py-2 px-4 rounded-full">You have access to draw</p>
               ) : (
-                <p className="bg-white mt-2">{drawer} has access to draw</p>
+                <p className="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-full">{drawer} has access to draw</p>
               )
             ) : (
-              <p className="bg-white mt-2">Waiting for more players to join...</p>
+              <p className="bg-yellow-100 text-yellow-800 font-semibold py-2 px-4 rounded-full">Waiting for more players to join...</p>
             )}
           </div>
         </>

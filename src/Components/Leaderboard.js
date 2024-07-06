@@ -1,12 +1,15 @@
 import React from 'react';
 
 const Leaderboard = ({ players,self,drawerId}) => {
+
+  const sortedPlayers = [...players].sort((a,b)=> b.points - a.points);
+
   console.log(self);
   return (
     <div className="bg-gradient-to-b from-blue-800 to-blue-600 p-4 rounded-lg shadow-md max-w-sm mx-auto">
       <h2 className="text-xl font-bold mb-3 text-center text-yellow-300 uppercase tracking-wide">Leaderboard</h2>
       <ul className="space-y-2">
-        {players.map((player, index) => (
+        {sortedPlayers.map((player, index) => (
           <li 
             key={index} 
             className={`flex justify-between items-center p-2 rounded ${
