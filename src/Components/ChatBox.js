@@ -1,14 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const ChatBox = ({ messages, onSendMessage }) => {
+const ChatBox = ({ messages, onSendMessage ,socket}) => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const [canGuess,setCanGuess] = useState(true);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages]);
+  useEffect(()=>{
+    socket.on('correctGuess',({playerId})=>{
+      if(playerId == socket.id) setCanGuess(false);
+    });
+
+    socket.on('drawingAccess',()=>{
+      setCanGuess(true);
+    })
+
+    return ()=>{
+      socket.off('correctGuess');
+      socket.off('drawingAccess');
+    }
+  },[socket])
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -38,9 +53,11 @@ const ChatBox = ({ messages, onSendMessage }) => {
           className="flex-grow p-2 rounded-l-lg border-2 border-blue-300 focus:outline-none focus:border-blue-500"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          disabled={!canGuess}
         />
         <button 
           type="submit" 
+          disabled={!canGuess}
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-r-lg transition duration-300 ease-in-out"
         >
           Send

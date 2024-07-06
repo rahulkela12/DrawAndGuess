@@ -30,6 +30,8 @@ const total_rounds = 3;
 const roomTimers = {};
 const roomRounds = {};
 
+const currentWords={};
+
 const startGame = (room)=>{
   roomRounds[room] = 1;
   startRound(room);
@@ -114,6 +116,7 @@ const selectRadnomPrivateDrawer = (room) => {
 };
 
 io.on("connection", (socket) => {
+
   socket.on("startPath", (data) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
@@ -162,13 +165,16 @@ io.on("connection", (socket) => {
     const room = playerRooms[socket.id];
     const proom = privatePlayerRoom[socket.id];
    if(room){
+    currentWords[room]=word.toLowerCase();
      io.to(room).emit('word',{word});
    }else if(proom){
+    currentWords[proom]=word.toLowerCase();
     io.to(proom).emit('word',{word});
    }
   }));
 
   console.log("User connected with id:", socket.id);
+
   socket.on("privateCreate", (data) => {
     const privateId = `room-${data.hints}`;
     const privateRoomId = Object.keys(privateRooms);
@@ -184,6 +190,8 @@ io.on("connection", (socket) => {
     privateRoomSize[privateId] = data.players;
     socket.emit("message", { message: "Created" });
   });
+
+
   socket.on("joinPrivate", (data) => {
     const roomIds = data.roomId;
     const name = data.name;
@@ -315,8 +323,23 @@ io.on("connection", (socket) => {
     }
 
     socket.on("message", (message) => {
-      console.log(`Message from ${name} in room ${userRoom}:`, message);
-      io.to(userRoom).emit("message", { sender: name, text: message });
+      const room = playerRooms[socket.id];
+      const name = rooms[room].find(player => player.id === socket.id)?.name;
+
+      if(message.toLowerCase() === currentWords[room]){
+
+        io.to(room).emit("message",{sender: "System",text: `${name} guessed the word correctly!`});
+        io.to(room).emit('correctGuess',{playerId : socket.id});
+        const playerIndex = rooms[room].findIndex(player => player.id === socket.id);
+
+        if(playerIndex !== -1){
+          rooms[room][playerIndex].points += 10;
+          io.to(room).emit('playerList',rooms[room]);
+        }
+      }else{
+          console.log(`Message from ${name} in room ${userRoom}:`, message);
+          io.to(userRoom).emit("message", { sender: name, text: message });
+      }
     });
 
     socket.on("disconnect", () => {
