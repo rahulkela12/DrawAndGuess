@@ -114,6 +114,7 @@ const PlayPublic = () => {
                 <ChatBox
                   messages={messages}
                   onSendMessage={handleSendMessage}
+                  socket={socket}
                 />
               </div>
             </div>
