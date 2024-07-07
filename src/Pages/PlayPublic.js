@@ -37,6 +37,8 @@ const PlayPublic = () => {
 
     socket.on('roundStart',({round,totalRounds,timeLeft})=>{
       setRound(round);
+      setIsWordSelected(false);
+      setSelectedWord("");
       setTotalRounds(totalRounds);
       setTimeLeft(timeLeft);
     });
@@ -53,7 +55,7 @@ const PlayPublic = () => {
       socket.off('drawingAccess');
       socket.off('roundStart');
       socket.off('timerUpdate');
-      socket.off('gameEnd');
+      socket.off('endGame');
     };
   }, [socket]);
 

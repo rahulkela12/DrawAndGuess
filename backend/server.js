@@ -31,6 +31,7 @@ const roomTimers = {};
 const roomRounds = {};
 
 const currentWords={};
+const correctGuessesPerRound = {};
 
 const max_points = 500;
 const min_points = 100;
@@ -38,6 +39,16 @@ const min_points = 100;
 
 function calculatePoints(timeLeft){
   return Math.max(min_points,Math.floor(max_points*(timeLeft/round_time)));
+}
+function calculateDrawerPoints(correctGuesses, totalPlayers) {
+  const maxDrawerPoints = 300; // Adjust this value as needed
+  const pointsPerGuess = maxDrawerPoints / (totalPlayers - 1); // Subtract 1 to exclude the drawer
+  return Math.floor(correctGuesses * pointsPerGuess);
+}
+function allUsersGuessed(room) {
+  const totalPlayers = rooms[room].length;
+  const correctGuesses = correctGuessesPerRound[room];
+  return correctGuesses === totalPlayers - 1; // Subtract 1 to exclude the drawer
 }
 
 const startGame = (room)=>{
@@ -47,8 +58,14 @@ const startGame = (room)=>{
 }
 
 const startRound=(room)=>{
+  
+  if (roomTimers[room]) {
+    clearInterval(roomTimers[room]);
+  }
+
   selectRadnomDrawer(room);
   roomTimers[room] = round_time;
+  correctGuessesPerRound[room] = 0;
   io.to(room).emit('roundStart',{
     round:roomRounds[room],
     totalRounds: total_rounds,
@@ -68,6 +85,18 @@ const startRound=(room)=>{
 };
 
 const endRound=(room)=>{
+  const drawerIndex = rooms[room].findIndex(player => player.id === drawingAcess[room]);
+
+  if(drawerIndex !== -1){
+    const drawerPoints = calculateDrawerPoints(correctGuessesPerRound[room],rooms[room].length);
+    rooms[room][drawerIndex].points += drawerPoints;
+    io.to(room).emit("message",{
+      sender: "System",
+      text:`${rooms[room][drawerIndex].name} got ${drawerPoints} points for ${correctGuessesPerRound[room]} correct guesses!`
+    });
+    io.to(room).emit('playerList',rooms[room]);
+  }
+
   if(roomRounds[room] < total_rounds){
     roomRounds[room]++;
     startRound(room);
@@ -344,7 +373,13 @@ io.on("connection", (socket) => {
 
         if(playerIndex !== -1){
           rooms[room][playerIndex].points += points;
+          correctGuessesPerRound[room]++;
           io.to(room).emit('playerList',rooms[room]);
+
+          // if(allUsersGuessed(room)){
+          //   clearInterval(roomTimers[room]);
+          //   endRound(room);
+          // }
         }
       }else{
           console.log(`Message from ${name} in room ${userRoom}:`, message);
