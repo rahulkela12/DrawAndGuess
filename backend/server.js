@@ -106,7 +106,12 @@ const endRound=(room)=>{
 };
 
 const endGame =(room)=>{
-  io.to(room).emit('endGame');
+  const finalScores = rooms[room].sort((a,b) => b.points - a.points);
+  const winner = finalScores[0];
+  io.to(room).emit('gameOver',{
+    winner : winner,
+    finalScores: finalScores
+  });
   // delete roomTimers[room];
   // delete roomRounds[room];
   // delete roomDrawnPlayers[room];

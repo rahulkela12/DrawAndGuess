@@ -6,6 +6,7 @@ import Leaderboard from "../Components/Leaderboard";
 import ChatBox from "../Components/ChatBox";
 import DrawingBoard from "../Components/DrawingBoard";
 import { io } from "socket.io-client";
+import WinnerAnnouncement from "../Components/WinnerAnnouncement";
 
 const socket = io('http://localhost:5000')
 
@@ -22,6 +23,9 @@ const PlayPublic = () => {
   const [timeLeft, setTimeLeft] = useState(80);
   const [round, setRound] = useState(1);
   const [totalRounds,setTotalRounds] = useState(3);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(null);
+  const [finalScores, setFinalScores] = useState([]);
 
   useEffect(() => {
     socket.on('drawingAccess', ({ playerId, playerName,round,totalRounds }) => {
@@ -47,15 +51,17 @@ const PlayPublic = () => {
       setTimeLeft(newTimeLeft);
     });
 
-    socket.on('endGame',()=>{
-      alert('Game over');
+    socket.on('gameOver',({winner,finalScores})=>{
+      setGameOver(true);
+      setWinner(winner);
+      setFinalScores(finalScores);
     })
 
     return () => {
       socket.off('drawingAccess');
       socket.off('roundStart');
       socket.off('timerUpdate');
-      socket.off('endGame');
+      socket.off('gameOver');
     };
   }, [socket]);
 
@@ -108,9 +114,16 @@ const PlayPublic = () => {
                 <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>
               </div>
               <div className="flex-1 mt-1 flex flex-col p-2 ">
-                <DrawingBoard socket={socket} canDraw={canDraw} drawer={drawer} setSelectedWord={setSelectedWord}
+                {gameOver ?(
+                  <WinnerAnnouncement winner={winner} finalScores={finalScores}/>
+                ):(
+                  <DrawingBoard 
+                  socket={socket} canDraw={canDraw} 
+                  drawer={drawer} setSelectedWord={setSelectedWord}
                   isWordSelected={isWordSelected} setIsWordSelected={setIsWordSelected}
                 />
+                )}
+                
               </div>
               <div className="w-1/4 mt-1 ml-0.5 flex-shrink-0 flex flex-col p-2">
                 <ChatBox
