@@ -8,7 +8,7 @@ import DrawingBoard from "../Components/DrawingBoard";
 import { io } from "socket.io-client";
 import WinnerAnnouncement from "../Components/WinnerAnnouncement";
 
-const socket = io('http://localhost:5000')
+const socket = io('http://localhost:5000');
 
 const PlayPublic = () => {
   const [players, setPlayers] = useState([]);
