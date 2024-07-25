@@ -63,7 +63,7 @@ const PlayPublic = () => {
       socket.off('timerUpdate');
       socket.off('gameOver');
     };
-  }, [socket]);
+  }, []);
 
   useEffect(() => {
     if (state && state.name && !hasJoined.current) {
