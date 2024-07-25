@@ -94,7 +94,7 @@ const DrawingBoard = ({ socket, canDraw, drawer,setSelectedWord,setIsWordSelecte
     setSelectedWord(word);
     socket.emit('word',{word});
     setIsWordSelected(true);
-    setShowOptions(false);
+//    setShowOptions(false);
   };
 
   return (
