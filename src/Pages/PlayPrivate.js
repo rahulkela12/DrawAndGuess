@@ -35,7 +35,7 @@ const PlayPrivate = () => {
     <>
         <div className="flex items-center  justify-center mt-20">
         <div className="w-full max-w-9xl  shadow-lg rounded-lg">
-          <TopBar />
+          <TopBar timeLeft={0} round={0} totalRounds={0} selectedWord={""} isWordSelected={false}/>
           <div className="flex h-[calc(100vh-13rem)]">
               <div className="w-1/4 mt-1 mr-0.5 flex-shrink-0 overflow-y-auto p-1">
                 <Leaderboard players={players} self={socket.id} drawerId={drawerId}/>

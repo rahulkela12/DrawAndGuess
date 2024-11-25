@@ -110,7 +110,7 @@ const GameForm = ({name}) => {
         />
       </div>
       <div className="flex justify-between items-center mt-4">
-        <label className=" text-white font-medium">Hints</label>
+        <label className=" text-white font-medium">Code:</label>
         <input 
           type="number" 
           value={hints} 
